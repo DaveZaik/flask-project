@@ -5,45 +5,47 @@ app=Flask(__name__)
 # define the secret key
 app.secret_key = 'mySecretKey'
 # define the connection 
-connection = pymysql.connect(host ="localhost",user ="root",database="bookings_db",password="")
-# create the main 
+connection=pymysql.connect(host="localhost",user="root",database="bookings_db",password="")
+# create the main route
 @app.route("/")
-def home():
- return"Welcome to our application. Type the route name in the address bar"
+def Main():
+    return "welcome to our application. type the route name in the address bar"
 
 # create the room-upload route
 @app.route("/upload_room",methods=['GET','POST'])
-def uploadRoom():
- #   check if user has posted anything
- if request.method=='POST':
-   # TODO
-   #   get the records from the user/send_form 
-   room_name=request.form['room_name']
-   room_desc=request.form['room_desc']
-   cost=request.form['cost']
-   availability=request.form['availability']
-   square_feet=request.form['square_feet']
-   image=request.files['image_url']
-   # check if user has filled in all the records
-   if not room_name or not room_desc or not cost or not availability or not square_feet or not image:
-    return render_template("upload_room.html",error="Please fill out all input fields")
-   #   save the image inside the static folder
-   image.save("static/images/"+ image.filename)
-   # pick the name of the image
-   image_url=image.filename
-   #  pick the name of the image 
-   cursor=connection.cursor()
-   sql='insert into rooms (room_name,room_desc,cost,availability,square_feet,image_url) values(%s,%s,%s,%s,%s,%s)'
-   values=(room_name,room_desc,cost,availability,square_feet,image_url)
-   #  execute the sql query
-   cursor.execute(sql,values)
-   connection.commit()
-   return render_template("upload_room.html",message="Room uploaded successfully")
+def upload_room():
+    # check if user has posted anything
+    if request.method == 'POST':
+        # TODO
+            # GET THE RECORDS FROM the user/form
+        room_name=request.form['room_name'] 
+        room_desc=request.form['room_desc']  
+        cost=request.form['cost']  
+        avilability=request.form['availability'] 
+        square_ft=request.form['square_feet'] 
+        image=request.files['image_url']  
+        # check if the user if has filled in all the records 
+        if not room_name or not room_desc or not cost or not avilability or not square_ft or not image:
+            return render_template("upload_room.html",error="please fill all the records") 
+        
+        # save the image inside the static folder
+        image.save('static/images/'+image.filename)
+        # pick the name of the image
+        image_url=image.filename
+        # create cursor to execute the sql query
+        cursor=connection.cursor()
+        # define the sql query
+        sql='insert into rooms(room_name,room_desc,cost,avilability,square_ft,image_url) values(%s,%s,%s,%s,%s,%s)'
+        values =(room_name,room_desc,cost,avilability,square_ft,image_url)
+        # execute the query
+        cursor.execute(sql,values)
+        connection.commit()
+        return render_template("upload_room.html",message="room uploaded sucessfully")
+    else: 
+        return render_template("upload_room.html")       
 
- else :
-  return render_template("upload_room.html")
- 
-  # CRUD operation
+    
+    # CRUD operation
     # C-create
     # R-read
     # U-update
@@ -141,40 +143,13 @@ def Signin():
         return redirect("/getrooms")
     # If the request method is GET, render the login page
     else:
-     return render_template("signup.html")
+     return render_template("login.html")
 # clear the session
 @app.route('/logout')
 def logout():
     session.clear()
     return redirect("/login")
 
-# login route for admin
-@app.route("/admin",methods=['Get','POST'])
-def Admin():
-    #check the method
-    if request.method=='POST':
-        # TODO
-        username=request.form['username']
-        password=request.form['password']
-        # define the sql query
-        sql='select * from users where username=%s and password=%s'
-        # create cursor function 
-        cursor=connection.cursor()
-        # exeucte the qury
-        cursor.execute(sql,(username,password))
-        # check if user esxits
-        if cursor.rowcount==0:
-            return render_template("signup.html",error="Incorrect login credentials.Try again")
-        # create user sessions
-        session['key']=username
-        # fetch the other columns
-        user=cursor.fetchone()
-        session['email']=user[1]
-        session['phone']=user[2]
-        return redirect("/getrooms")
-    # If the request method is GET, render the login page
-    else:
-     return render_template("signup.html")
+    # run the app
+app.run(debug=True,port=80000)
 
-     # run the app
-app.run(debug=True)
